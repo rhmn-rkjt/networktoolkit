@@ -7,7 +7,10 @@ class HomePage extends StatelessWidget {
   Widget menuCard(BuildContext context, String title, IconData icon, Widget page) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => page),
+        );
       },
       child: Card(
         elevation: 5,
@@ -17,7 +20,7 @@ class HomePage extends StatelessWidget {
           children: [
             Icon(icon, size: 40),
             SizedBox(height: 10),
-            Text(title),
+            Text(title, style: TextStyle(fontSize: 16)),
           ],
         ),
       ),
@@ -27,7 +30,10 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Network Toolkit")),
+      appBar: AppBar(
+        title: Text("Network Toolkit"),
+        centerTitle: true,
+      ),
       body: GridView.count(
         crossAxisCount: 2,
         padding: EdgeInsets.all(16),
