@@ -12,13 +12,17 @@ class SubnetPage extends StatefulWidget {
 }
 
 class _SubnetPageState extends State<SubnetPage> {
+  // Input IP awal dan CIDR target.
   final ipController = TextEditingController();
   final newCidrController = TextEditingController();
 
+  // Kelas IP default yang menentukan base CIDR.
   String selectedClass = "C";
 
+  // Riwayat hasil subnetting.
   List<SubnetHistory> historyList = [];
 
+  // Menentukan CIDR dasar berdasarkan classful network.
   int get baseCIDR {
     switch (selectedClass) {
       case "A":
@@ -30,17 +34,19 @@ class _SubnetPageState extends State<SubnetPage> {
     }
   }
 
+  // Ringkasan hasil kalkulasi yang ditampilkan ke UI.
   String network = "-";
   String broadcast = "-";
   String firstHost = "-";
   String lastHost = "-";
   String totalHost = "-";
 
+  // Statistik subnet hasil pembagian.
   int jumlahSubnet = 0;
   int jumlahHostStep = 0;
   int blokSubnet = 0;
 
-  // =========================
+  // Validasi format IPv4 sederhana (4 oktet, rentang 0-255).
   bool isValidIP(String ip) {
     final parts = ip.split('.');
     if (parts.length != 4) return false;
@@ -51,7 +57,7 @@ class _SubnetPageState extends State<SubnetPage> {
     return true;
   }
 
-  // =========================
+  // HITUNG SUBNET
   void calculate() {
     String ip = ipController.text;
     int cidr = baseCIDR;
@@ -73,16 +79,19 @@ class _SubnetPageState extends State<SubnetPage> {
     int ipInt = IPCalculator.ipToInt(ip);
     int mask = ((0xffffffff << (32 - cidr)) & 0xffffffff);
 
+    // Hitung network dan broadcast untuk jaringan dasar.
     int baseNetwork = (ipInt & mask) & 0xffffffff;
     int broad = (baseNetwork | (~mask)) & 0xffffffff;
 
     int subnetBits = newCidr - cidr;
 
     setState(() {
+      // Nilai statistik subnet sesuai CIDR target.
       jumlahSubnet = 1 << subnetBits;
       jumlahHostStep = (1 << (32 - newCidr)) - 2;
       blokSubnet = 1 << (32 - newCidr);
 
+      // Detail alamat jaringan utama.
       network = IPCalculator.intToIp(baseNetwork);
       broadcast = IPCalculator.intToIp(broad);
       firstHost = IPCalculator.intToIp(baseNetwork + 1);
@@ -90,7 +99,7 @@ class _SubnetPageState extends State<SubnetPage> {
       totalHost = ((1 << (32 - cidr)) - 2).toString();
     });
 
-    // 🔥 SIMPAN HISTORY
+    // Simpan hasil perhitungan agar bisa dipanggil ulang dari history.
     historyList.insert(
       0,
       SubnetHistory(
@@ -109,7 +118,7 @@ class _SubnetPageState extends State<SubnetPage> {
     );
   }
 
-  // =========================
+  // TABEL SUBNET
   Widget subnetTable() {
     if (network == "-") return SizedBox();
 
@@ -120,6 +129,7 @@ class _SubnetPageState extends State<SubnetPage> {
     int mask = ((0xffffffff << (32 - cidr)) & 0xffffffff);
     int baseNetwork = (ipInt & mask) & 0xffffffff;
 
+    // Jumlah baris tabel sesuai banyak subnet baru.
     int subnetCount = 1 << (newCidr - cidr);
     int subnetSize = 1 << (32 - newCidr);
 
@@ -134,6 +144,7 @@ class _SubnetPageState extends State<SubnetPage> {
           DataColumn(label: Text("Host")),
         ],
         rows: List.generate(subnetCount, (i) {
+          // Tiap baris merepresentasikan 1 subnet.
           int net = (baseNetwork + (i * subnetSize)) & 0xffffffff;
           int broad = (net + subnetSize - 1) & 0xffffffff;
 
@@ -149,7 +160,7 @@ class _SubnetPageState extends State<SubnetPage> {
     );
   }
 
-  // =========================
+  // EXPORT PDF
   Future<void> exportPDF() async {
     if (network == "-") return;
 
@@ -167,6 +178,7 @@ class _SubnetPageState extends State<SubnetPage> {
 
     List<List<String>> data = [];
 
+    // Menyiapkan data tabel untuk laporan PDF.
     for (int i = 0; i < subnetCount; i++) {
       int net = (baseNetwork + (i * subnetSize)) & 0xffffffff;
       int broad = (net + subnetSize - 1) & 0xffffffff;
@@ -198,10 +210,11 @@ class _SubnetPageState extends State<SubnetPage> {
       ),
     );
 
+    // Kirim dokumen ke dialog print/share dari package printing.
     await Printing.layoutPdf(onLayout: (format) => pdf.save());
   }
 
-  // =========================
+  // Memilih CLASS IP
   Widget classSelector() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -215,15 +228,15 @@ class _SubnetPageState extends State<SubnetPage> {
         );
       }).toList(),
     );
-  }
-
-  // =========================
+  } 
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Subnetting Calculator"),
         actions: [
+          // Membuka halaman history dan mengisi ulang field saat item dipilih.
           IconButton(
             icon: Icon(Icons.history),
             onPressed: () {

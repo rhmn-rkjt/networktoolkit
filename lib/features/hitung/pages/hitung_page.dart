@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../shared/history_page.dart';
 
-// ======================
 // MODEL HISTORY
-// ======================
 class HitungHistory {
   final String a;
   final String b;
@@ -22,42 +20,47 @@ class HitungPage extends StatefulWidget {
 }
 
 class _HitungPageState extends State<HitungPage> {
+  // Dua input biner yang dipakai untuk operasi.
   final TextEditingController bin1 = TextEditingController();
   final TextEditingController bin2 = TextEditingController();
 
+  // Menyimpan hasil dan nama operasi terakhir.
   String result = "-";
   String lastOp = "";
 
+  // Riwayat perhitungan
   List<HitungHistory> history = [];
 
-  // ======================
-  // VALIDASI BINARY
-  // ======================
+  // Validasi bahwa string hanya berisi 0 dan 1.
   bool isBinary(String s) {
     return RegExp(r'^[01]+$').hasMatch(s);
   }
 
+  // Helper untuk parsing nilai input biner ke integer.
   int getA() => int.parse(bin1.text, radix: 2);
   int getB() => int.parse(bin2.text, radix: 2);
 
+  // Menyimpan hasil ke state dan ke history.
   void setResult(int value, String op) {
     setState(() {
       result = value.toRadixString(2);
       lastOp = op;
     });
 
-    // 🔥 SIMPAN HISTORY
+    // SIMPAN HISTORY
     history.insert(
       0,
       HitungHistory(bin1.text, bin2.text, op, result),
     );
   }
 
+  // Menampilkan pesan kesalahan sederhana.
   void error(String msg) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(msg)));
   }
 
+  // Factory tombol agar tidak mengulang widget yang sama.
   Widget btn(String text, VoidCallback onTap) {
     return ElevatedButton(
       onPressed: onTap,
@@ -65,9 +68,7 @@ class _HitungPageState extends State<HitungPage> {
     );
   }
 
-  // ======================
-  // VALIDASI SEBELUM HITUNG
-  // ======================
+  // Validasi input sebelum operasi dijalankan.
   bool validateAB({bool needB = true}) {
     if (!isBinary(bin1.text)) {
       error("Binary 1 tidak valid");
@@ -86,6 +87,7 @@ class _HitungPageState extends State<HitungPage> {
       appBar: AppBar(
         title: Text("Hitung Biner Lengkap"),
         actions: [
+          // Buka history lalu restore nilai saat item dipilih.
           IconButton(
             icon: Icon(Icons.history),
             onPressed: () {
@@ -126,9 +128,7 @@ class _HitungPageState extends State<HitungPage> {
 
             SizedBox(height: 20),
 
-            // ======================
-            // ARITMATIKA
-            // ======================
+            // Operasi aritmatika: +, -, *, dan pembagian integer.
             Text("Aritmatika", style: TextStyle(fontWeight: FontWeight.bold)),
             Wrap(
               spacing: 10,
@@ -155,9 +155,7 @@ class _HitungPageState extends State<HitungPage> {
 
             SizedBox(height: 20),
 
-            // ======================
-            // LOGIKA BIT
-            // ======================
+            //LOGIKA BIT: AND, OR, XOR, dan NOT.
             Text("Logika Bit", style: TextStyle(fontWeight: FontWeight.bold)),
             Wrap(
               spacing: 10,
@@ -183,9 +181,7 @@ class _HitungPageState extends State<HitungPage> {
 
             SizedBox(height: 20),
 
-            // ======================
-            // SHIFT
-            // ======================
+            //SHIFT BIT: geser kiri/kanan 1 bit.
             Text("Shift Bit", style: TextStyle(fontWeight: FontWeight.bold)),
             Wrap(
               spacing: 10,
@@ -203,9 +199,7 @@ class _HitungPageState extends State<HitungPage> {
 
             SizedBox(height: 20),
 
-            // ======================
-            // ADVANCED LOGIC
-            // ======================
+            // ADVANCED LOGIC: kombinasi negasi dari operator dasar.
             Text("Advanced Logic", style: TextStyle(fontWeight: FontWeight.bold)),
             Wrap(
               spacing: 10,
@@ -227,9 +221,7 @@ class _HitungPageState extends State<HitungPage> {
 
             SizedBox(height: 20),
 
-            // ======================
-            // HASIL
-            // ======================
+            // menampilkan operasi terakhir dan hasil biner.
             Text("Operasi Terakhir: $lastOp"),
 
             Card(

@@ -19,14 +19,17 @@ class KonversiPage extends StatefulWidget {
 }
 
 class _KonversiPageState extends State<KonversiPage> {
+  // Controller untuk membaca teks input pengguna.
   final TextEditingController input = TextEditingController();
 
+  // Menyimpan hasil konversi terakhir dan jenis operasinya.
   String result = "-";
   String lastOp = "";
 
+  // Menyimpan riwayat konversi (terbaru di index 0).
   List<KonversiHistory> history = [];
 
-  // ======================
+  // Memperbarui hasil di UI dan langsung menyimpan ke history.
   void setResult(String res, String op) {
     setState(() {
       result = res;
@@ -41,22 +44,22 @@ class _KonversiPageState extends State<KonversiPage> {
         .showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  // NUMBER SYSTEM
+  // KONVERSI BASIS ANGKA
   void decToBin() {
     int? num = int.tryParse(input.text);
     if (num == null) return error("Input decimal tidak valid");
-    setResult(num.toRadixString(2), "Dec→Bin");
+    setResult(num.toRadixString(2), "Dec → Bin");
   }
 
   void decToHex() {
     int? num = int.tryParse(input.text);
     if (num == null) return error("Input decimal tidak valid");
-    setResult(num.toRadixString(16), "Dec→Hex");
+    setResult(num.toRadixString(16), "Dec →Hex");
   }
 
   void binToDec() {
     try {
-      setResult(int.parse(input.text, radix: 2).toString(), "Bin→Dec");
+      setResult(int.parse(input.text, radix: 2).toString(), "Bin → Dec");
     } catch (_) {
       error("Input biner salah");
     }
@@ -64,7 +67,7 @@ class _KonversiPageState extends State<KonversiPage> {
 
   void hexToDec() {
     try {
-      setResult(int.parse(input.text, radix: 16).toString(), "Hex→Dec");
+      setResult(int.parse(input.text, radix: 16).toString(), "Hex → Dec");
     } catch (_) {
       error("Input hex salah");
     }
@@ -73,7 +76,7 @@ class _KonversiPageState extends State<KonversiPage> {
   void binToHex() {
     try {
       int num = int.parse(input.text, radix: 2);
-      setResult(num.toRadixString(16), "Bin→Hex");
+      setResult(num.toRadixString(16), "Bin → Hex");
     } catch (_) {
       error("Input biner salah");
     }
@@ -82,13 +85,13 @@ class _KonversiPageState extends State<KonversiPage> {
   void hexToBin() {
     try {
       int num = int.parse(input.text, radix: 16);
-      setResult(num.toRadixString(2), "Hex→Bin");
+      setResult(num.toRadixString(2), "Hex → Bin");
     } catch (_) {
       error("Input hex salah");
     }
   }
 
-  // IP ADDRESS
+  // KONVERSI IP ADDRESS
   void ipToBinary() {
     try {
       List<String> parts = input.text.split('.');
@@ -98,7 +101,7 @@ class _KonversiPageState extends State<KonversiPage> {
           .map((e) => int.parse(e).toRadixString(2).padLeft(8, '0'))
           .join('.');
 
-      setResult(res, "IP→Bin");
+      setResult(res, "IP → Bin");
     } catch (_) {
       error("Format IP salah");
     }
@@ -112,21 +115,21 @@ class _KonversiPageState extends State<KonversiPage> {
       String res =
           parts.map((e) => int.parse(e, radix: 2).toString()).join('.');
 
-      setResult(res, "Bin→IP");
+      setResult(res, "Bin → IP");
     } catch (_) {
       error("Format binary IP salah");
     }
   }
 
-  // TEXT & ASCII
+  // KONVERSI TEXT / ASCII / BINARY
   void textToAscii() {
-    setResult(input.text.codeUnits.join(' '), "Text→ASCII");
+    setResult(input.text.codeUnits.join(' '), "Text → ASCII");
   }
 
   void asciiToText() {
     try {
       List<int> codes = input.text.split(' ').map(int.parse).toList();
-      setResult(String.fromCharCodes(codes), "ASCII→Text");
+      setResult(String.fromCharCodes(codes), "ASCII → Text");
     } catch (_) {
       error("Format ASCII salah");
     }
@@ -136,7 +139,7 @@ class _KonversiPageState extends State<KonversiPage> {
     String res = input.text.codeUnits
         .map((c) => c.toRadixString(2).padLeft(8, '0'))
         .join(' ');
-    setResult(res, "Text→Bin");
+    setResult(res, "Text → Bin");
   }
 
   void binaryToText() {
@@ -145,13 +148,13 @@ class _KonversiPageState extends State<KonversiPage> {
       String res = String.fromCharCodes(
         parts.map((b) => int.parse(b, radix: 2)).toList(),
       );
-      setResult(res, "Bin→Text");
+      setResult(res, "Bin → Text");
     } catch (_) {
       error("Format binary text salah");
     }
   }
 
-  // ======================
+  // Factory tombol agar semua tombol aksi konsisten.
   Widget btn(String text, VoidCallback onTap) {
     return ElevatedButton(
       onPressed: onTap,
@@ -159,13 +162,13 @@ class _KonversiPageState extends State<KonversiPage> {
     );
   }
 
-  // ======================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Konversi Programmer"),
         actions: [
+          // Membuka halaman history, lalu bisa pilih item untuk restore state.
           IconButton(
             icon: Icon(Icons.history),
             onPressed: () {
@@ -203,40 +206,43 @@ class _KonversiPageState extends State<KonversiPage> {
 
             SizedBox(height: 20),
 
+            // aksi konversi antar basis angka.
             Text("Number System", style: TextStyle(fontWeight: FontWeight.bold)),
             Wrap(
               spacing: 10,
               children: [
-                btn("Dec→Bin", decToBin),
-                btn("Dec→Hex", decToHex),
-                btn("Bin→Dec", binToDec),
-                btn("Hex→Dec", hexToDec),
-                btn("Bin→Hex", binToHex),
-                btn("Hex→Bin", hexToBin),
+                btn("Dec → Bin", decToBin),
+                btn("Dec → Hex", decToHex),
+                btn("Bin → Dec", binToDec),
+                btn("Hex → Dec", hexToDec),
+                btn("Bin → Hex", binToHex),
+                btn("Hex → Bin", hexToBin),
               ],
             ),
 
             SizedBox(height: 20),
 
+            // aksi konversi IP <-> biner.
             Text("IP Address", style: TextStyle(fontWeight: FontWeight.bold)),
             Wrap(
               spacing: 10,
               children: [
-                btn("IP→Bin", ipToBinary),
-                btn("Bin→IP", binaryToIp),
+                btn("IP → Bin", ipToBinary),
+                btn("Bin → IP", binaryToIp),
               ],
             ),
 
             SizedBox(height: 20),
 
+            // Kelompok aksi konversi text, ASCII, dan biner.
             Text("Text & ASCII", style: TextStyle(fontWeight: FontWeight.bold)),
             Wrap(
               spacing: 10,
               children: [
-                btn("Text→ASCII", textToAscii),
-                btn("ASCII→Text", asciiToText),
-                btn("Text→Bin", textToBinary),
-                btn("Bin→Text", binaryToText),
+                btn("Text → ASCII", textToAscii),
+                btn("ASCII → Text", asciiToText),
+                btn("Text → Bin", textToBinary),
+                btn("Bin → Text", binaryToText),
               ],
             ),
 

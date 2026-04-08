@@ -1,7 +1,5 @@
 class IPCalculator {
-  // =========================
   // CONVERT
-  // =========================
   static int ipToInt(String ip) {
     var p = ip.split('.').map(int.parse).toList();
     return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
@@ -23,9 +21,7 @@ class IPCalculator {
         .join('.');
   }
 
-  // =========================
   // MAIN CALCULATION
-  // =========================
   static Map<String, dynamic> calculate(String ip, int cidr) {
     int ipInt = ipToInt(ip);
 
@@ -47,9 +43,7 @@ class IPCalculator {
     };
   }
 
-  // =========================
   // SUBNET TABLE
-  // =========================
   static List<Map<String, String>> generateSubnets(
       String ip, int cidr, int newCidr) {
     int ipInt = ipToInt(ip);
