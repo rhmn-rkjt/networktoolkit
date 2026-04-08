@@ -3,6 +3,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 import '../../../core/utils/ip_calculator.dart';
+import '../../../shared/history_page.dart';
+import '../models/subnet_history.dart';
 
 class SubnetPage extends StatefulWidget {
   @override
@@ -14,6 +16,8 @@ class _SubnetPageState extends State<SubnetPage> {
   final newCidrController = TextEditingController();
 
   String selectedClass = "C";
+
+  List<SubnetHistory> historyList = [];
 
   int get baseCIDR {
     switch (selectedClass) {
@@ -61,7 +65,7 @@ class _SubnetPageState extends State<SubnetPage> {
 
     if (newCidr <= cidr || newCidr > 30) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("CIDR target harus lebih besar dari class")),
+        SnackBar(content: Text("CIDR target harus lebih besar")),
       );
       return;
     }
@@ -85,6 +89,24 @@ class _SubnetPageState extends State<SubnetPage> {
       lastHost = IPCalculator.intToIp(broad - 1);
       totalHost = ((1 << (32 - cidr)) - 2).toString();
     });
+
+    // 🔥 SIMPAN HISTORY
+    historyList.insert(
+      0,
+      SubnetHistory(
+        ip: ip,
+        classType: selectedClass,
+        baseCidr: cidr,
+        targetCidr: newCidr,
+        network: network,
+        broadcast: broadcast,
+        firstHost: firstHost,
+        lastHost: lastHost,
+        jumlahSubnet: jumlahSubnet,
+        hostPerSubnet: jumlahHostStep,
+        blokSubnet: blokSubnet,
+      ),
+    );
   }
 
   // =========================
@@ -167,9 +189,7 @@ class _SubnetPageState extends State<SubnetPage> {
           pw.Text("Subnet: $jumlahSubnet"),
           pw.Text("Host/Subnet: $jumlahHostStep"),
           pw.Text("Blok: $blokSubnet"),
-
           pw.SizedBox(height: 20),
-
           pw.Table.fromTextArray(
             headers: ["Network", "First", "Last", "Broadcast", "Host"],
             data: data,
@@ -201,7 +221,42 @@ class _SubnetPageState extends State<SubnetPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Subnetting Calculator")),
+      appBar: AppBar(
+        title: Text("Subnetting Calculator"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.history),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => HistoryPage(
+                    history: historyList,
+                    title: "History Subnet",
+                    onSelect: (h) {
+                      setState(() {
+                        ipController.text = h.ip;
+                        selectedClass = h.classType;
+                        newCidrController.text =
+                            h.targetCidr.toString();
+
+                        network = h.network;
+                        broadcast = h.broadcast;
+                        firstHost = h.firstHost;
+                        lastHost = h.lastHost;
+
+                        jumlahSubnet = h.jumlahSubnet;
+                        jumlahHostStep = h.hostPerSubnet;
+                        blokSubnet = h.blokSubnet;
+                      });
+                    },
+                  ),
+                ),
+              );
+            },
+          )
+        ],
+      ),
       body: Padding(
         padding: EdgeInsets.all(16),
         child: ListView(

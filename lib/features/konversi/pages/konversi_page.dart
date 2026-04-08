@@ -1,4 +1,17 @@
 import 'package:flutter/material.dart';
+import '../../../shared/history_page.dart';
+
+// MODEL HISTORY
+class KonversiHistory {
+  final String input;
+  final String operation;
+  final String result;
+
+  KonversiHistory(this.input, this.operation, this.result);
+
+  @override
+  String toString() => "$operation: $input → $result";
+}
 
 class KonversiPage extends StatefulWidget {
   @override
@@ -7,134 +20,138 @@ class KonversiPage extends StatefulWidget {
 
 class _KonversiPageState extends State<KonversiPage> {
   final TextEditingController input = TextEditingController();
-  String result = "";
+
+  String result = "-";
+  String lastOp = "";
+
+  List<KonversiHistory> history = [];
 
   // ======================
+  void setResult(String res, String op) {
+    setState(() {
+      result = res;
+      lastOp = op;
+    });
+
+    history.insert(0, KonversiHistory(input.text, op, res));
+  }
+
+  void error(String msg) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(msg)));
+  }
+
   // NUMBER SYSTEM
-  // ======================
-
   void decToBin() {
-    int num = int.tryParse(input.text) ?? 0;
-    setState(() => result = num.toRadixString(2));
+    int? num = int.tryParse(input.text);
+    if (num == null) return error("Input decimal tidak valid");
+    setResult(num.toRadixString(2), "Dec→Bin");
   }
 
   void decToHex() {
-    int num = int.tryParse(input.text) ?? 0;
-    setState(() => result = num.toRadixString(16));
+    int? num = int.tryParse(input.text);
+    if (num == null) return error("Input decimal tidak valid");
+    setResult(num.toRadixString(16), "Dec→Hex");
   }
 
   void binToDec() {
     try {
-      setState(() => result = int.parse(input.text, radix: 2).toString());
+      setResult(int.parse(input.text, radix: 2).toString(), "Bin→Dec");
     } catch (_) {
-      result = "Input biner salah";
-      setState(() {});
+      error("Input biner salah");
     }
   }
 
   void hexToDec() {
     try {
-      setState(() => result = int.parse(input.text, radix: 16).toString());
+      setResult(int.parse(input.text, radix: 16).toString(), "Hex→Dec");
     } catch (_) {
-      result = "Input hex salah";
-      setState(() {});
+      error("Input hex salah");
     }
   }
 
   void binToHex() {
     try {
       int num = int.parse(input.text, radix: 2);
-      setState(() => result = num.toRadixString(16));
+      setResult(num.toRadixString(16), "Bin→Hex");
     } catch (_) {
-      result = "Input biner salah";
-      setState(() {});
+      error("Input biner salah");
     }
   }
 
   void hexToBin() {
     try {
       int num = int.parse(input.text, radix: 16);
-      setState(() => result = num.toRadixString(2));
+      setResult(num.toRadixString(2), "Hex→Bin");
     } catch (_) {
-      result = "Input hex salah";
-      setState(() {});
+      error("Input hex salah");
     }
   }
 
-  // ======================
   // IP ADDRESS
-  // ======================
-
   void ipToBinary() {
     try {
       List<String> parts = input.text.split('.');
-      result = parts
+      if (parts.length != 4) return error("Format IP salah");
+
+      String res = parts
           .map((e) => int.parse(e).toRadixString(2).padLeft(8, '0'))
           .join('.');
-      setState(() {});
+
+      setResult(res, "IP→Bin");
     } catch (_) {
-      result = "Format IP salah";
-      setState(() {});
+      error("Format IP salah");
     }
   }
 
   void binaryToIp() {
     try {
       List<String> parts = input.text.split('.');
-      result = parts
-          .map((e) => int.parse(e, radix: 2).toString())
-          .join('.');
-      setState(() {});
+      if (parts.length != 4) return error("Format binary IP salah");
+
+      String res =
+          parts.map((e) => int.parse(e, radix: 2).toString()).join('.');
+
+      setResult(res, "Bin→IP");
     } catch (_) {
-      result = "Format binary IP salah";
-      setState(() {});
+      error("Format binary IP salah");
     }
   }
 
-  // ======================
   // TEXT & ASCII
-  // ======================
-
   void textToAscii() {
-    result = input.text.codeUnits.join(' ');
-    setState(() {});
+    setResult(input.text.codeUnits.join(' '), "Text→ASCII");
   }
 
   void asciiToText() {
     try {
       List<int> codes = input.text.split(' ').map(int.parse).toList();
-      result = String.fromCharCodes(codes);
-      setState(() {});
+      setResult(String.fromCharCodes(codes), "ASCII→Text");
     } catch (_) {
-      result = "Format ASCII salah";
-      setState(() {});
+      error("Format ASCII salah");
     }
   }
 
   void textToBinary() {
-    result = input.text.codeUnits
+    String res = input.text.codeUnits
         .map((c) => c.toRadixString(2).padLeft(8, '0'))
         .join(' ');
-    setState(() {});
+    setResult(res, "Text→Bin");
   }
 
   void binaryToText() {
     try {
       List<String> parts = input.text.split(' ');
-      result = String.fromCharCodes(
+      String res = String.fromCharCodes(
         parts.map((b) => int.parse(b, radix: 2)).toList(),
       );
-      setState(() {});
+      setResult(res, "Bin→Text");
     } catch (_) {
-      result = "Format binary text salah";
-      setState(() {});
+      error("Format binary text salah");
     }
   }
 
   // ======================
-  // BUTTON UI
-  // ======================
-
   Widget btn(String text, VoidCallback onTap) {
     return ElevatedButton(
       onPressed: onTap,
@@ -143,13 +160,35 @@ class _KonversiPageState extends State<KonversiPage> {
   }
 
   // ======================
-  // UI
-  // ======================
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Konversi Programmer")),
+      appBar: AppBar(
+        title: Text("Konversi Programmer"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.history),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => HistoryPage(
+                    history: history,
+                    title: "History Konversi",
+                    onSelect: (h) {
+                      setState(() {
+                        input.text = h.input;
+                        result = h.result;
+                        lastOp = h.operation;
+                      });
+                    },
+                  ),
+                ),
+              );
+            },
+          )
+        ],
+      ),
       body: Padding(
         padding: EdgeInsets.all(16),
         child: ListView(
@@ -164,9 +203,6 @@ class _KonversiPageState extends State<KonversiPage> {
 
             SizedBox(height: 20),
 
-            // ======================
-            // NUMBER SYSTEM
-            // ======================
             Text("Number System", style: TextStyle(fontWeight: FontWeight.bold)),
             Wrap(
               spacing: 10,
@@ -182,9 +218,6 @@ class _KonversiPageState extends State<KonversiPage> {
 
             SizedBox(height: 20),
 
-            // ======================
-            // IP
-            // ======================
             Text("IP Address", style: TextStyle(fontWeight: FontWeight.bold)),
             Wrap(
               spacing: 10,
@@ -196,9 +229,6 @@ class _KonversiPageState extends State<KonversiPage> {
 
             SizedBox(height: 20),
 
-            // ======================
-            // TEXT ASCII
-            // ======================
             Text("Text & ASCII", style: TextStyle(fontWeight: FontWeight.bold)),
             Wrap(
               spacing: 10,
@@ -212,11 +242,10 @@ class _KonversiPageState extends State<KonversiPage> {
 
             SizedBox(height: 20),
 
-            // ======================
-            // RESULT
-            // ======================
+            Text("Operasi Terakhir: $lastOp"),
+
             Card(
-              elevation: 3,
+              elevation: 2,
               child: Padding(
                 padding: EdgeInsets.all(16),
                 child: Text(

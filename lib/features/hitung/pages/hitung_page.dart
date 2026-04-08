@@ -1,4 +1,20 @@
 import 'package:flutter/material.dart';
+import '../../../shared/history_page.dart';
+
+// ======================
+// MODEL HISTORY
+// ======================
+class HitungHistory {
+  final String a;
+  final String b;
+  final String op;
+  final String result;
+
+  HitungHistory(this.a, this.b, this.op, this.result);
+
+  @override
+  String toString() => "$a $op $b = $result";
+}
 
 class HitungPage extends StatefulWidget {
   @override
@@ -9,15 +25,37 @@ class _HitungPageState extends State<HitungPage> {
   final TextEditingController bin1 = TextEditingController();
   final TextEditingController bin2 = TextEditingController();
 
-  String result = "";
+  String result = "-";
+  String lastOp = "";
 
-  int getA() => int.tryParse(bin1.text, radix: 2) ?? 0;
-  int getB() => int.tryParse(bin2.text, radix: 2) ?? 0;
+  List<HitungHistory> history = [];
 
-  void setResult(int value) {
+  // ======================
+  // VALIDASI BINARY
+  // ======================
+  bool isBinary(String s) {
+    return RegExp(r'^[01]+$').hasMatch(s);
+  }
+
+  int getA() => int.parse(bin1.text, radix: 2);
+  int getB() => int.parse(bin2.text, radix: 2);
+
+  void setResult(int value, String op) {
     setState(() {
       result = value.toRadixString(2);
+      lastOp = op;
     });
+
+    // 🔥 SIMPAN HISTORY
+    history.insert(
+      0,
+      HitungHistory(bin1.text, bin2.text, op, result),
+    );
+  }
+
+  void error(String msg) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(msg)));
   }
 
   Widget btn(String text, VoidCallback onTap) {
@@ -27,11 +65,50 @@ class _HitungPageState extends State<HitungPage> {
     );
   }
 
+  // ======================
+  // VALIDASI SEBELUM HITUNG
+  // ======================
+  bool validateAB({bool needB = true}) {
+    if (!isBinary(bin1.text)) {
+      error("Binary 1 tidak valid");
+      return false;
+    }
+    if (needB && !isBinary(bin2.text)) {
+      error("Binary 2 tidak valid");
+      return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Hitung Biner Lengkap"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.history),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => HistoryPage(
+                    history: history,
+                    title: "History Hitung",
+                    onSelect: (h) {
+                      setState(() {
+                        bin1.text = h.a;
+                        bin2.text = h.b;
+                        result = h.result;
+                        lastOp = h.op;
+                      });
+                    },
+                  ),
+                ),
+              );
+            },
+          )
+        ],
       ),
       body: Padding(
         padding: EdgeInsets.all(16),
@@ -56,15 +133,22 @@ class _HitungPageState extends State<HitungPage> {
             Wrap(
               spacing: 10,
               children: [
-                btn("+", () => setResult(getA() + getB())),
-                btn("-", () => setResult(getA() - getB())),
-                btn("*", () => setResult(getA() * getB())),
+                btn("+", () {
+                  if (!validateAB()) return;
+                  setResult(getA() + getB(), "+");
+                }),
+                btn("-", () {
+                  if (!validateAB()) return;
+                  setResult(getA() - getB(), "-");
+                }),
+                btn("*", () {
+                  if (!validateAB()) return;
+                  setResult(getA() * getB(), "*");
+                }),
                 btn("/", () {
-                  if (getB() == 0) {
-                    setState(() => result = "Tidak bisa dibagi 0");
-                  } else {
-                    setResult(getA() ~/ getB());
-                  }
+                  if (!validateAB()) return;
+                  if (getB() == 0) return error("Tidak bisa dibagi 0");
+                  setResult(getA() ~/ getB(), "/");
                 }),
               ],
             ),
@@ -78,10 +162,22 @@ class _HitungPageState extends State<HitungPage> {
             Wrap(
               spacing: 10,
               children: [
-                btn("AND", () => setResult(getA() & getB())),
-                btn("OR", () => setResult(getA() | getB())),
-                btn("XOR", () => setResult(getA() ^ getB())),
-                btn("NOT A", () => setResult(~getA())),
+                btn("AND", () {
+                  if (!validateAB()) return;
+                  setResult(getA() & getB(), "AND");
+                }),
+                btn("OR", () {
+                  if (!validateAB()) return;
+                  setResult(getA() | getB(), "OR");
+                }),
+                btn("XOR", () {
+                  if (!validateAB()) return;
+                  setResult(getA() ^ getB(), "XOR");
+                }),
+                btn("NOT A", () {
+                  if (!validateAB(needB: false)) return;
+                  setResult(~getA(), "NOT");
+                }),
               ],
             ),
 
@@ -94,8 +190,14 @@ class _HitungPageState extends State<HitungPage> {
             Wrap(
               spacing: 10,
               children: [
-                btn("A << 1", () => setResult(getA() << 1)),
-                btn("A >> 1", () => setResult(getA() >> 1)),
+                btn("A << 1", () {
+                  if (!validateAB(needB: false)) return;
+                  setResult(getA() << 1, "<<");
+                }),
+                btn("A >> 1", () {
+                  if (!validateAB(needB: false)) return;
+                  setResult(getA() >> 1, ">>");
+                }),
               ],
             ),
 
@@ -108,9 +210,18 @@ class _HitungPageState extends State<HitungPage> {
             Wrap(
               spacing: 10,
               children: [
-                btn("NAND", () => setResult(~(getA() & getB()))),
-                btn("NOR", () => setResult(~(getA() | getB()))),
-                btn("XNOR", () => setResult(~(getA() ^ getB()))),
+                btn("NAND", () {
+                  if (!validateAB()) return;
+                  setResult(~(getA() & getB()), "NAND");
+                }),
+                btn("NOR", () {
+                  if (!validateAB()) return;
+                  setResult(~(getA() | getB()), "NOR");
+                }),
+                btn("XNOR", () {
+                  if (!validateAB()) return;
+                  setResult(~(getA() ^ getB()), "XNOR");
+                }),
               ],
             ),
 
@@ -119,8 +230,10 @@ class _HitungPageState extends State<HitungPage> {
             // ======================
             // HASIL
             // ======================
+            Text("Operasi Terakhir: $lastOp"),
+
             Card(
-              elevation: 3,
+              elevation: 2,
               child: Padding(
                 padding: EdgeInsets.all(16),
                 child: Text(
