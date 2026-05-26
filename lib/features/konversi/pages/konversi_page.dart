@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../shared/history_page.dart';
+import '../../../shared/widgets/example_section.dart';
+import '../../../shared/utils/pdf_utils.dart';
 
 // MODEL HISTORY
 class KonversiHistory {
@@ -28,7 +30,7 @@ class _KonversiPageState extends State<KonversiPage> {
 
   // Menyimpan riwayat konversi (terbaru di index 0).
   List<KonversiHistory> history = [];
-
+  
   // Memperbarui hasil di UI dan langsung menyimpan ke history.
   void setResult(String res, String op) {
     setState(() {
@@ -168,6 +170,14 @@ class _KonversiPageState extends State<KonversiPage> {
       appBar: AppBar(
         title: Text("Konversi Programmer"),
         actions: [
+          // Help button - Open PDF tutorial
+          IconButton(
+            icon: Icon(Icons.help_outline),
+            onPressed: () {
+              PDFUtils.openKonversiPDF();
+            },
+            tooltip: 'Buka Panduan',
+          ),
           // Membuka halaman history, lalu bisa pilih item untuk restore state.
           IconButton(
             icon: Icon(Icons.history),
@@ -196,11 +206,29 @@ class _KonversiPageState extends State<KonversiPage> {
         padding: EdgeInsets.all(16),
         child: ListView(
           children: [
-            TextField(
-              controller: input,
-              decoration: InputDecoration(
-                labelText: "Input",
-                border: OutlineInputBorder(),
+            // Example Section
+            ExampleSection(
+              tutorialKey: 'konversi',
+              onExampleSelected: (val1, val2) {
+                setState(() {
+                  input.text = val1;
+                });
+              },
+            ),
+
+            SizedBox(height: 16),
+
+            // Input Field dengan Tooltip
+            Tooltip(
+              message: 'Masukkan nilai yang ingin dikonversi',
+              child: TextField(
+                controller: input,
+                decoration: InputDecoration(
+                  labelText: "Input",
+                  helperText: 'Contoh: 255, 1010, FF, 192.168.1.1, Hello',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.input),
+                ),
               ),
             ),
 

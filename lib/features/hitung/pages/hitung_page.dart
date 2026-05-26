@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../shared/history_page.dart';
+import '../../../shared/widgets/example_section.dart';
+import '../../../shared/utils/pdf_utils.dart';
 
 // MODEL HISTORY
 class HitungHistory {
@@ -87,6 +89,14 @@ class _HitungPageState extends State<HitungPage> {
       appBar: AppBar(
         title: Text("Hitung Biner Lengkap"),
         actions: [
+          // Help button - Open PDF tutorial
+          IconButton(
+            icon: Icon(Icons.help_outline),
+            onPressed: () {
+              PDFUtils.openHitungPDF();
+            },
+            tooltip: 'Buka Panduan',
+          ),
           // Buka history lalu restore nilai saat item dipilih.
           IconButton(
             icon: Icon(Icons.history),
@@ -116,14 +126,44 @@ class _HitungPageState extends State<HitungPage> {
         padding: EdgeInsets.all(16),
         child: ListView(
           children: [
-            TextField(
-              controller: bin1,
-              decoration: InputDecoration(labelText: "Binary 1"),
+            // Example Section
+            ExampleSection(
+              tutorialKey: 'hitung',
+              onExampleSelected: (val1, val2) {
+                setState(() {
+                  bin1.text = val1;
+                  bin2.text = val2 ?? '';
+                });
+              },
+            ),
+
+            SizedBox(height: 16),
+
+            // Input Fields dengan Tooltip
+            Tooltip(
+              message: 'Masukkan bilangan biner (hanya 0 dan 1)',
+              child: TextField(
+                controller: bin1,
+                decoration: InputDecoration(
+                  labelText: "Binary 1",
+                  helperText: 'Contoh: 1010, 11111, 0101',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.numbers),
+                ),
+              ),
             ),
             SizedBox(height: 10),
-            TextField(
-              controller: bin2,
-              decoration: InputDecoration(labelText: "Binary 2"),
+            Tooltip(
+              message: 'Masukkan bilangan biner kedua (hanya 0 dan 1)',
+              child: TextField(
+                controller: bin2,
+                decoration: InputDecoration(
+                  labelText: "Binary 2",
+                  helperText: 'Contoh: 1100, 10101, 0011',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.numbers),
+                ),
+              ),
             ),
 
             SizedBox(height: 20),
