@@ -70,6 +70,9 @@ class _SubnetPageState extends State<SubnetPage> {
   int jumlahHostStep = 0;
   int blokSubnet     = 0;
 
+  // Flag untuk track apakah sudah dihitung
+  bool _isCalculated = false;
+
   // ─── Bitwise helpers (unsigned 32-bit safe) ────────────────────────────────
   int _buildMask(int prefixLen) {
     if (prefixLen == 0)  return 0;
@@ -124,8 +127,8 @@ class _SubnetPageState extends State<SubnetPage> {
 
     if (cidr < 4 || cidr > 30) return "❌ CIDR harus antara 4–30";
 
-    if (cidr <= baseCIDR) {
-      return "❌ CIDR target harus lebih besar dari /$baseCIDR (Class $cls)";
+    if (cidr < baseCIDR) {
+      return "❌ CIDR target harus >= /$baseCIDR (Class $cls)";
     }
 
     // Cegah OOM: hitung jumlah subnet sebelum kalkulasi dimulai.
@@ -142,6 +145,7 @@ class _SubnetPageState extends State<SubnetPage> {
   void calculate() {
     final err = validateInputs();
     if (err.isNotEmpty) {
+      setState(() => _isCalculated = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(err),
         duration: const Duration(seconds: 4),
@@ -161,6 +165,7 @@ class _SubnetPageState extends State<SubnetPage> {
     final subnetSize     = 1 << (32 - newCidr);
 
     setState(() {
+      _isCalculated  = true;
       jumlahSubnet   = 1 << (newCidr - cidr);
       jumlahHostStep = subnetSize - 2;
       blokSubnet     = subnetSize;
@@ -189,7 +194,8 @@ class _SubnetPageState extends State<SubnetPage> {
 
   // ─── TABEL SUBNET (lazy render) ────────────────────────────────────────────
   Widget subnetTable() {
-    if (network == "-") return const SizedBox();
+    // Hanya tampilkan tabel jika sudah dihitung dan data valid
+    if (!_isCalculated || network == "-") return const SizedBox();
 
     final newCidr = int.tryParse(newCidrController.text.trim());
     if (newCidr == null) return const SizedBox();
@@ -466,7 +472,7 @@ class _SubnetPageState extends State<SubnetPage> {
             message: 'Kelas akan terdeteksi otomatis dari IP yang dimasukkan',
             child: TextField(
               controller: ipController,
-              onChanged: (_) => setState(() {}),
+              onChanged: (_) => setState(() => _isCalculated = false),
               decoration: const InputDecoration(
                 labelText: "IP Address",
                 helperText: 'Contoh: 10.0.0.0 · 172.16.0.0 · 192.168.1.0',
@@ -485,15 +491,15 @@ class _SubnetPageState extends State<SubnetPage> {
 
           // CIDR Target
           Tooltip(
-            message: 'CIDR target harus lebih besar dari baseCIDR kelas terdeteksi',
+            message: 'CIDR target harus >= baseCIDR kelas terdeteksi',
             child: TextField(
               controller: newCidrController,
               keyboardType: TextInputType.number,
-              onChanged: (_) => setState(() {}),
+              onChanged: (_) => setState(() => _isCalculated = false),
               decoration: InputDecoration(
                 labelText: "CIDR Target",
                 helperText: baseCIDR > 0
-                    ? 'Harus > /$baseCIDR (Class $detectedClass), maks /30'
+                    ? 'Harus >= /$baseCIDR (Class $detectedClass), maks /30'
                     : 'Isi IP terlebih dahulu',
                 prefixText: "/",
                 border: const OutlineInputBorder(),
