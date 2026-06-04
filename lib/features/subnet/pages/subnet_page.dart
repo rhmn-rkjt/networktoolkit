@@ -73,7 +73,6 @@ class _SubnetPageState extends State<SubnetPage> {
   // Flag untuk track apakah sudah dihitung
   bool _isCalculated = false;
 
-  // ─── Bitwise helpers (unsigned 32-bit safe) ────────────────────────────────
   int _buildMask(int prefixLen) {
     if (prefixLen == 0)  return 0;
     if (prefixLen == 32) return 0xffffffff;
@@ -192,7 +191,7 @@ class _SubnetPageState extends State<SubnetPage> {
     ));
   }
 
-  // ─── TABEL SUBNET (lazy render) ────────────────────────────────────────────
+  // TABEL SUBNET
   Widget subnetTable() {
     // Hanya tampilkan tabel jika sudah dihitung dan data valid
     if (!_isCalculated || network == "-") return const SizedBox();
@@ -286,7 +285,7 @@ class _SubnetPageState extends State<SubnetPage> {
     );
   }
 
-  // ─── EXPORT PDF ────────────────────────────────────────────────────────────
+  // EXPORT PDF
   Future<void> exportPDF() async {
     if (network == "-") return;
 
@@ -336,7 +335,7 @@ class _SubnetPageState extends State<SubnetPage> {
     await Printing.layoutPdf(onLayout: (format) => pdf.save());
   }
 
-  // ─── Widget info kelas (menggantikan ChoiceChip selector) ─────────────────
+  // Widget info kelas 
   Widget _classInfoBadge() {
     final ip  = ipController.text.trim();
     final cls = detectedClass;
