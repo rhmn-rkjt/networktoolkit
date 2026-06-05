@@ -184,21 +184,21 @@ class TutorialData {
       ],
       examples: [
         Example(
-          title: 'Kelas C',
+          title: 'Kelas C - Jaringan Rumah',
           description: 'Kelas C /24 dengan CIDR target /24 (tidak ada pembagian subnet)',
           value1: '192.168.9.2',
           value2: '24',
           result: 'Network: 192.0.0.0 | Broadcast: 192.0.0.255 | Host: 254 | Subnet Mask: 255.255.255.0',
         ),
         Example(
-          title: 'Kelas B',
+          title: 'Kelas B - Jaringan Kampus',
           description: 'Kelas B /16 dengan CIDR target /18 (4 subnet × 16.382 host)',
           value1: '128.72.3.254',
           value2: '16',
           result: 'Subnet 1: 128.0.0.0 - 128.0.63.255 | Subnet 2: 128.0.64.0 - 128.0.127.255 | Subnet Mask: 255.255.192.0',
         ),
         Example(
-          title: 'Kelas A',
+          title: 'Kelas A - Jaringan PTP',
           description: 'Kelas A /8 dengan CIDR target /9 (2 subnet × 8.388.606 host)',
           value1: '1.10.13.5',
           value2: '8',
